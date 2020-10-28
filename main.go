@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "os/user"
 	// "encoding/json"
 	"fmt"
 	// "net/http"
@@ -9,11 +10,11 @@ import (
 )
 
 
-type address struct {
-	Firstname 	string
-	Lastname 	string
-	Code 		int
-	Phone 		string
+type User struct {
+	ID 			int
+	FirstName 	string
+	LastName 	string
+	age 		int
 }
 
 func main() {
@@ -28,7 +29,8 @@ func main() {
 		defer db.Close()
 	}
 
-	addUser(db)
+	// addUser(db)
+	fmt.Println(getUser(db))
 
 }
 
@@ -37,13 +39,36 @@ func addUser(db *sql.DB) bool {
 
 	defer statement.Close()
 
-	_,err := statement.Exec(1, "Test", "Last" , 25)
+	_,err := statement.Exec(2, "Test", "Last" , 25)
 
 	if err != nil {
 		panic(err.Error())
 		return false
 	}
 	return true
+}
+
+func getUser(db *sql.DB) []User {
+	statement,_ := db.Query("select * from test.user")
+	defer statement.Close()
+	var userList []User
+	for statement.Next() {
+		var user User
+		err := statement.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+			&user.age,
+		)
+
+		if err != nil {
+			panic(err.Error())
+		}
+
+		userList = append(userList, user)
+	}
+
+	return userList
 }
 
 // func homePage(w http.ResponseWriter, r *http.Request){
