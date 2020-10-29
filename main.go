@@ -7,6 +7,8 @@ import (
 	// "net/http"
 	"database/sql"
 	_"github.com/go-sql-driver/mysql"
+	"helloworld/route"
+	
 )
 
 
@@ -18,7 +20,7 @@ type User struct {
 }
 
 func main() {
-	// handleRequest()
+	
 	db,err := sql.Open("mysql","root:@tcp(127.0.0.1:3306)/test")
 	
 
@@ -28,33 +30,36 @@ func main() {
 		fmt.Println("Connect Success")
 		defer db.Close()
 	}
+	fmt.Println(getUser(db))
+	route.HandleRequest()
 
 	// addUser(db)
-	fmt.Println(getUser(db))
+	// updateUser(db,1)
+	
 
 }
 
+
 func addUser(db *sql.DB) bool {
-	statement,_ := db.Prepare("INSERT INTO test.user (ID , FirstName ,LastName ,Age) VALUES (?, ?, ?, ?)")
+	statement,_ := db.Prepare("INSERT INTO test.person (FirstName ,LastName ,Age) VALUES (?, ?, ?)")
 
 	defer statement.Close()
 
-	_,err := statement.Exec(2, "Test", "Last" , 25)
+	_,err := statement.Exec("Test3", "Last" , 35)
 
 	if err != nil {
 		panic(err.Error())
-		return false
 	}
 	return true
 }
 
 func getUser(db *sql.DB) []User {
-	statement,_ := db.Query("select * from test.user")
-	defer statement.Close()
+	result,_ := db.Query("select * from test.person")
+	defer result.Close()
 	var userList []User
-	for statement.Next() {
+	for result.Next() {
 		var user User
-		err := statement.Scan(
+		err := result.Scan(
 			&user.ID,
 			&user.FirstName,
 			&user.LastName,
@@ -71,6 +76,32 @@ func getUser(db *sql.DB) []User {
 	return userList
 }
 
+func updateUser(db *sql.DB ,id int) bool {
+	statement,_ := db.Prepare("update test.person set  FirstName = ? ,LastName = ? ,Age = ? where id = ?")
+
+	defer statement.Close()
+
+	_,err := statement.Exec("Test", "Last" , 25, id)
+
+	if err != nil {
+		panic(err.Error())
+	}
+	return true
+}
+
+func deleteUser(db *sql.DB, id int) bool {
+	statement,_ := db.Prepare("delete from test.person where id = ?")
+	defer statement.Close()
+	_,fail := statement.Exec(id)
+
+	if fail != nil {
+		panic(fail.Error())
+	}
+	return true
+}
+
+//----------------route -----------------
+
 // func homePage(w http.ResponseWriter, r *http.Request){
 // 	fmt.Fprint(w,"Welcome to Darkside")
 // }
@@ -82,11 +113,10 @@ func getUser(db *sql.DB) []User {
 // }
 
 // func getAddress(w http.ResponseWriter, r *http.Request){
-// 	addBook := address {
-// 		Firstname: "Inwza",
-// 		Lastname: "007",
-// 		Code: 1993,
-// 		Phone: "1231234",
+// 	addBook := User {
+// 		FirstName: "Inwza",
+// 		LastName: "007",
+// 		age: 25,
 // 	}
 // 	json.NewEncoder(w).Encode(addBook)
 // }
